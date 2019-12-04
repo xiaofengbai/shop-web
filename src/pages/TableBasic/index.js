@@ -1,96 +1,103 @@
+/* eslint-disable no-underscore-dangle */
 import React, { PureComponent } from 'react';
-import { Table, Divider, Tag } from 'antd';
-import request from '@/utils/request';
+import { Divider, Table, Popconfirm } from 'antd';
+import { connect } from 'dva';
+import moment from 'moment';
 import styles from './index.less';
 
-const columns = [
-  {
-    title: 'Name',
-    dataIndex: 'name',
-    key: 'name',
-    render: text => <a>{text}</a>,
-  },
-  {
-    title: 'Age',
-    dataIndex: 'age',
-    key: 'age',
-  },
-  {
-    title: 'Address',
-    dataIndex: 'address',
-    key: 'address',
-  },
-  {
-    title: 'Tags',
-    key: 'tags',
-    dataIndex: 'tags',
-    render: tags => (
-      <span>
-        {tags.map(tag => {
-          let color = tag.length > 5 ? 'geekblue' : 'green';
-          if (tag === 'loser') {
-            color = 'volcano';
-          }
-          return (
-            <Tag color={color} key={tag}>
-              {tag.toUpperCase()}
-            </Tag>
-          );
-        })}
-      </span>
-    ),
-  },
-  {
-    title: 'Action',
-    key: 'action',
-    render: (text, record) => (
-      <span>
-        <a>Invite {record.name}</a>
-        <Divider type="vertical" />
-        <a>Delete</a>
-      </span>
-    ),
-  },
-];
+class Index extends PureComponent {
+  columns = [
+    {
+      title: '名称',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: '所属',
+      dataIndex: 'belongsTo',
+      key: 'belongsTo',
+    },
+    {
+      title: '总数',
+      dataIndex: 'total',
+      key: 'total',
+    },
+    {
+      title: '剩余数量',
+      dataIndex: 'remainder',
+      key: 'remainder',
+    },
+    {
+      title: '价格',
+      dataIndex: 'price',
+      key: 'price',
+    },
+    {
+      title: '创建时间',
+      dataIndex: '_createTime',
+      key: '_createTime',
+      render: data => moment(data).format('YYYY-MM-DD HH:mm'),
+    },
+    {
+      title: '操作',
+      key: 'edit',
+      render: (text, record) => (
+        <span>
+          <a>编辑</a>
+          <Divider type="vertical" />
+          <Popconfirm
+            title="确认删除吗"
+            onConfirm={() => {
+              this.removeData(record._id);
+            }}
+          >
+            <a>删除</a>
+          </Popconfirm>
+        </span>
+      ),
+    },
+  ];
 
-const data = [
-  {
-    key: '1',
-    name: 'John Brown',
-    age: 32,
-    address: 'New York No. 1 Lake Park',
-    tags: ['nice', 'developer'],
-  },
-  {
-    key: '2',
-    name: 'Jim Green',
-    age: 42,
-    address: 'London No. 1 Lake Park',
-    tags: ['loser'],
-  },
-  {
-    key: '3',
-    name: 'Joe Black',
-    age: 32,
-    address: 'Sidney No. 1 Lake Park',
-    tags: ['cool', 'teacher'],
-  },
-];
-
-export default class index extends PureComponent {
-  state = {
-    data: [],
-  };
-  async componentDidMount() {
-    const res = await request('/v1/shop/list');
-    console.log(res);
-    debugger;
+  componentDidMount() {
+    this.props.dispatch({ type: 'list/getList', payload: { page: 1, pageSize: 5 } });
   }
+
+  removeData = id => {
+    this.props.dispatch({
+      type: 'list/removeData',
+      id,
+      callback: () => {
+        this.props.dispatch({ type: 'list/getList', payload: { page: 1, pageSize: 5 } });
+      },
+    });
+  };
+
+  onChange = config => {
+    this.props.dispatch({
+      type: 'list/getList',
+      payload: { page: config.current, pageSize: config.pageSize },
+    });
+  };
+
   render() {
+    const { data = [], total } = this.props;
     return (
       <div className={styles.container}>
-        <Table columns={columns} dataSource={data} />
+        <Table
+          columns={this.columns}
+          dataSource={data}
+          onChange={this.onChange}
+          pagination={{
+            total,
+            pageSize: 5,
+          }}
+        />
       </div>
     );
   }
 }
+export default connect(({ list, loading }) => ({
+  data: list.data,
+  total: list.total,
+  loading,
+}))(Index);
