@@ -2,7 +2,6 @@
 import fetch from 'dva/fetch';
 import { notification } from 'antd';
 import router from 'umi/router';
-import hash from 'hash.js';
 
 const codeMessage = {
   200: '服务器成功返回请求的数据。',
@@ -40,7 +39,7 @@ const checkStatus = response => {
   throw error;
 };
 
-const cachedSave = (response, hashcode) => {
+const cachedSave = response => {
   /**
    * Clone a response data and store it in sessionStorage
    * Does not support data other than json, Cache only json
@@ -48,13 +47,7 @@ const cachedSave = (response, hashcode) => {
   const contentType = response.headers.get('Content-Type');
   if (contentType && contentType.match(/application\/json/i)) {
     // All data is saved as text
-    response
-      .clone()
-      .text()
-      .then(content => {
-        sessionStorage.setItem(hashcode, content);
-        sessionStorage.setItem(`${hashcode}:timestamp`, Date.now());
-      });
+    response.clone().text();
   }
   return response;
 };
@@ -68,21 +61,16 @@ const cachedSave = (response, hashcode) => {
  */
 export default function request(url, option) {
   const options = {
-    expirys: true,
     ...option,
   };
   /**
    * Produce fingerprints based on url and parameters
    * Maybe url has the same parameters
    */
-  const fingerprint = url + (options.body ? JSON.stringify(options.body) : '');
-  const hashcode = hash
-    .sha256()
-    .update(fingerprint)
-    .digest('hex');
 
   const defaultOptions = {
     credentials: 'include',
+    mode: 'cors',
   };
   const newOptions = { ...defaultOptions, ...options };
   if (
@@ -106,28 +94,9 @@ export default function request(url, option) {
       };
     }
   }
-
-  const expirys = options.expirys && 60;
-  // options.expirys !== false, return the cache,
-  if (options.expirys !== false) {
-    const cached = sessionStorage.getItem(hashcode);
-    const whenCached = sessionStorage.getItem(`${hashcode}:timestamp`);
-    if (cached !== null && whenCached !== null) {
-      const age = (Date.now() - whenCached) / 1000;
-      if (age < expirys) {
-        const response = new Response(new Blob([cached]));
-        return response.json();
-      }
-      sessionStorage.removeItem(hashcode);
-      sessionStorage.removeItem(`${hashcode}:timestamp`);
-    }
-  }
   return fetch(`http://192.168.100.177:3000${url}`, newOptions)
     .then(checkStatus)
-    .then(response => cachedSave(response, hashcode))
     .then(response => {
-      // 204 do not return data by default
-      // using .json will report an error.
       if (response.status === 204) {
         return response.text();
       }
