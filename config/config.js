@@ -1,12 +1,12 @@
 import defaultSettings from './defaultSettings'; // https://umijs.org/config/
-
+import webpackPlugin from './plugin.config';
+import os from 'os';
 import slash from 'slash2';
 import themePluginConfig from './themePluginConfig';
 const { pwa } = defaultSettings; // preview.pro.ant.design only do not use in your production ;
 // preview.pro.ant.design 专用环境变量，请不要在你的项目中使用它。
 
-const { ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION, NODE_ENV, MOCK, LOCAL } = process.env;
-const isAntDesignProPreview = ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION === 'site';
+const { NODE_ENV, MOCK, LOCAL, TEST } = process.env;
 const plugins = [
   [
     'umi-plugin-react',
@@ -16,18 +16,15 @@ const plugins = [
         hmr: true,
       },
       locale: {
-        // default false
-        enable: true,
-        // default zh-CN
+        enable: false,
         default: 'zh-CN',
-        // default true, when it is true, will use `navigator.language` overwrite default
         baseNavigator: true,
       },
-      // dynamicImport: {
-      //   loadingComponent: './components/PageLoading/index',
-      //   webpackChunkName: true,
-      //   level: 3,
-      // },
+      dynamicImport: {
+        loadingComponent: './components/PageLoading/index',
+        webpackChunkName: true,
+        level: 3,
+      },
       pwa: pwa
         ? {
             workboxPluginMode: 'InjectManifest',
@@ -35,12 +32,16 @@ const plugins = [
               importWorkboxFrom: 'local',
             },
           }
-        : false, // default close dll, because issue https://github.com/ant-design/ant-design-pro/issues/4665
-      // dll features https://webpack.js.org/plugins/dll-plugin/
-      // dll: {
-      //   include: ['dva', 'dva/router', 'dva/saga', 'dva/fetch'],
-      //   exclude: ['@babel/runtime', 'netlify-lambda'],
-      // },
+        : {},
+      ...(!TEST && os.platform() === 'darwin'
+        ? {
+            dll: {
+              include: ['dva', 'dva/router', 'dva/saga', 'dva/fetch'],
+              exclude: ['@babel/runtime'],
+            },
+            hardSource: false,
+          }
+        : {}),
     },
   ],
   [
@@ -54,20 +55,8 @@ const plugins = [
   ],
 ];
 
-if (isAntDesignProPreview) {
-  // 针对 preview.pro.ant.design 的 GA 统计代码
-  plugins.push([
-    'umi-plugin-ga',
-    {
-      code: 'UA-72788897-6',
-    },
-  ]);
-  plugins.push(['umi-plugin-antd-theme', themePluginConfig]);
-}
-
 export default {
   plugins,
-  hash: true,
   targets: {
     ie: 11,
   },
@@ -129,8 +118,6 @@ export default {
     // ...darkTheme,
   },
   define: {
-    ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION:
-      ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION || '', // preview.pro.ant.design only do not use in your production ; preview.pro.ant.design 专用环境变量，请不要在你的项目中使用它。
     BASE_URL: '',
     NEED_AUTH: NODE_ENV === 'production',
   },
@@ -166,7 +153,8 @@ export default {
   },
   manifest: {
     basePath: '/',
-  }, // chainWebpack: webpackPlugin,
+  },
+  chainWebpack: webpackPlugin,
   // proxy: {
   //   '/server/api/': {
   //     target: 'https://preview.pro.ant.design/',
