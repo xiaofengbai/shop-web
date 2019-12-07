@@ -94,7 +94,7 @@ export default function request(url, option) {
       };
     }
   }
-  return fetch(`http://192.168.100.177:3000${url}`, newOptions)
+  return fetch(`http://georgette.top:3000${url}`, newOptions)
     .then(checkStatus)
     .then(response => {
       if (response.status === 204) {
