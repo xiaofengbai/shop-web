@@ -9,3 +9,20 @@ export function removeData(id) {
     method: 'DELETE',
   });
 }
+export function updateShop(parames) {
+  return request('/v1/shop/update', {
+    method: 'POST',
+    body: {
+      ...parames,
+    },
+  });
+}
+
+export function createShop(parames) {
+  return request('/v1/shop/create', {
+    method: 'PUT',
+    body: {
+      ...parames,
+    },
+  });
+}

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-expressions */
-import { getList, removeData } from '@/services/api';
+import { getList, removeData, updateShop, createShop } from '@/services/api';
 
 const Model = {
   namespace: 'shopList',
@@ -35,6 +35,15 @@ const Model = {
         });
       }
     },
+    *createShop({ payload, callback }, { call, put }) {
+      const { success } = yield call(createShop, payload);
+      if (success) {
+        yield put.resolve({
+          type: 'getList',
+        });
+        callback && callback();
+      }
+    },
     *removeData({ id }, { call, select, put }) {
       const { success } = yield call(removeData, id);
       if (success) {
@@ -47,6 +56,15 @@ const Model = {
           type: 'getList',
           payload: { page },
         });
+      }
+    },
+    *updateShop({ payload, callback }, { call, put }) {
+      const { success } = yield call(updateShop, payload);
+      if (success) {
+        yield put.resolve({
+          type: 'getList',
+        });
+        callback && callback();
       }
     },
   },
