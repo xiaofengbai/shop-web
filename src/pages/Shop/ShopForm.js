@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { Form, InputNumber, Input } from 'antd';
+import { Form, InputNumber, Input, DatePicker } from 'antd';
 import { get } from 'lodash';
+import moment from 'moment';
 
 const FormItem = Form.Item;
 const formItemLayout = {
@@ -27,6 +28,34 @@ class ShopForm extends Component {
             ],
             initialValue: data && data.name,
           })(<Input placeholder="请输入名称" />)}
+        </FormItem>
+        <FormItem {...formItemLayout} label="作者">
+          {getFieldDecorator('config.author', {
+            rules: [
+              {
+                message: '请输入作者',
+              },
+            ],
+            initialValue: get(data, 'config.author'),
+          })(<Input placeholder="请输入名称" />)}
+        </FormItem>
+        <FormItem {...formItemLayout} label="出版日期">
+          {getFieldDecorator('config.publicationDate', {
+            rules: [
+              {
+                required: false,
+                message: '请选择出版日期',
+              },
+            ],
+            initialValue: data && data.config && moment(get(data, 'config.publicationDate')),
+          })(
+            <DatePicker
+              style={{
+                width: '100%',
+              }}
+              placeholder="请选择出版日期"
+            />,
+          )}
         </FormItem>
         <FormItem {...formItemLayout} label="所属">
           {getFieldDecorator('belongsTo', {

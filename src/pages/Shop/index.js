@@ -1,13 +1,26 @@
 /* eslint-disable no-underscore-dangle */
 import React, { PureComponent } from 'react';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import { Divider, Table, Popconfirm, Modal, Button, Form, Card, Row, Col, Input } from 'antd';
+import {
+  Divider,
+  Table,
+  Popconfirm,
+  Modal,
+  Button,
+  Form,
+  Card,
+  Row,
+  Col,
+  Input,
+  DatePicker,
+} from 'antd';
 import { connect } from 'dva';
 import { isEmpty, get } from 'lodash';
 import moment from 'moment';
 import EditForm from './ShopForm';
 import styles from './index.less';
 
+const { RangePicker } = DatePicker;
 const FormItem = Form.Item;
 const formItemLayout = {
   labelCol: { span: 8 },
@@ -20,6 +33,11 @@ class Index extends PureComponent {
       title: '名称',
       dataIndex: 'name',
       key: 'name',
+    },
+    {
+      title: '作者',
+      dataIndex: 'config.author',
+      key: 'config.author',
     },
     {
       title: '所属',
@@ -45,11 +63,17 @@ class Index extends PureComponent {
       key: 'price',
     },
     {
-      title: '创建时间',
-      dataIndex: '_createTime',
-      key: '_createTime',
-      render: data => moment(data).format('YYYY-MM-DD HH:mm'),
+      title: '出版时间',
+      dataIndex: 'config.publicationDate',
+      key: 'config.publicationDate',
+      render: data => (data ? moment(data).format('YYYY-MM-DD HH:mm') : ''),
     },
+    // {
+    //   title: '创建时间',
+    //   dataIndex: '_createTime',
+    //   key: '_createTime',
+    //   render: data => moment(data).format('YYYY-MM-DD HH:mm'),
+    // },
     {
       title: '操作',
       key: 'edit',
@@ -79,6 +103,7 @@ class Index extends PureComponent {
   state = {
     formState: 0, // 0 hiden 1 add show 2 edit show
     row: {},
+    formValues: {},
   };
 
   // eslint-disable-next-line react/sort-comp
@@ -88,7 +113,7 @@ class Index extends PureComponent {
 
   resetForm = () => {
     try {
-      this.formNode.resetFields();
+      // this.formNode.resetFields();
     } catch (e) {
       console.log(e);
     }
@@ -104,7 +129,6 @@ class Index extends PureComponent {
             type: 'shopList/updateShop',
             payload: { id, ...values },
             callback: () => {
-              this.resetForm();
               this.setState({
                 formState: 0,
               });
@@ -115,7 +139,6 @@ class Index extends PureComponent {
             type: 'shopList/createShop',
             payload: { id, ...values },
             callback: () => {
-              this.resetForm();
               this.setState({
                 formState: 0,
               });
@@ -175,61 +198,144 @@ class Index extends PureComponent {
     });
   };
 
+  handleFormReset = () => {
+    const { form } = this.props;
+    form.resetFields();
+    this.setState({
+      formValues: {},
+    });
+    this.getList();
+  };
+
+  queryShop = () => {
+    const { form } = this.props;
+    form.validateFields((err, values) => {
+      if (err) return;
+      const parames = { config: {} };
+      const publicationDate = form.getFieldValue('config.publicationDate');
+      if (values.name) {
+        parames.name = values.name;
+      }
+      if (values.belongsTo) {
+        parames.belongsTo = values.belongsTo;
+      }
+
+      if (publicationDate) {
+        parames.config.publicationDate = [
+          moment(publicationDate[0]).format('YYYY-MM-DD'),
+          moment(publicationDate[1]).format('YYYY-MM-DD'),
+        ];
+      }
+      this.getList({
+        page: 1,
+        ...parames,
+      });
+    });
+  };
+
+  renderSimpleForm() {
+    const { form } = this.props;
+    const { getFieldDecorator } = form;
+    return (
+      <Form layout="inline">
+        <Row
+          gutter={{
+            md: 8,
+            lg: 24,
+            xl: 48,
+          }}
+        >
+          <Col span={6}>
+            <FormItem {...formItemLayout} label="名称">
+              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+            </FormItem>
+          </Col>
+          <Col span={6}>
+            <FormItem {...formItemLayout} label="所属">
+              {getFieldDecorator('belongsTo')(<Input placeholder="请输入" />)}
+            </FormItem>
+          </Col>
+          <Col span={8}>
+            <FormItem {...formItemLayout} label="出版时间">
+              {getFieldDecorator('config.publicationDate')(
+                <RangePicker
+                  format="YYYY-MM-DD"
+                  style={{ width: '100%' }}
+                  showTime={false}
+                  allowClear={true}
+                  onChange={this.dateChange}
+                />,
+              )}
+            </FormItem>
+          </Col>
+          <Col span={4}>
+            <Button t {...formItemLayout} type="primary" onClick={this.queryShop}>
+              查询
+            </Button>
+            <Button
+              style={{
+                marginLeft: 8,
+              }}
+              onClick={this.handleFormReset}
+            >
+              重置
+            </Button>
+          </Col>
+        </Row>
+        <Row
+          gutter={{
+            md: 8,
+            lg: 24,
+            xl: 48,
+          }}
+        >
+          <Button
+            type="primary"
+            style={{
+              marginLeft: 8,
+            }}
+            onClick={() => {
+              this.setState({
+                formState: 1,
+              });
+            }}
+          >
+            创建
+          </Button>
+        </Row>
+      </Form>
+    );
+  }
+
   render() {
     const { data = [], total, page, pageSize } = this.props;
     const { formState, row } = this.state;
     return (
       <PageHeaderWrapper title="商品列表">
         <Card bordered={false}>
-          <Row>
-            {/* <Col span={8}>
-              <FormItem {...formItemLayout} label="讲座名称"></FormItem>
-            </Col>
-            <Col span={4} offset={1}>
-              <Button type="primary" htmlType="submit" onClick={this.onQuery}>
-                查询
-              </Button>
-            </Col> */}
-            <Col span={4} offset={1}>
-              <Button
-                type="primary"
-                htmlType="submit"
-                onClick={() => {
-                  this.resetForm();
-                  this.setState({
-                    formState: 1,
-                    row: {},
-                  });
-                }}
-              >
-                新建
-              </Button>
-            </Col>
-          </Row>
-          <div className={styles.container}>
-            <Table
-              columns={this.columns}
-              dataSource={data}
-              onChange={this.onTableChange}
-              pagination={{
-                current: page,
-                pageSize,
-                total,
-                showQuickJumper: false,
-                showSizeChanger: true,
-                showTotal: (atotal, range) =>
-                  `当前显示：第${range[0]}-${range[1]}条, 总共${atotal}条`,
-                onShowSizeChange: (current, size) => this.paginationSizeChange(current, size),
-              }}
-            />
-          </div>
+          <div className={styles.tableListForm}>{this.renderSimpleForm()}</div>
+          <Table
+            columns={this.columns}
+            dataSource={data}
+            onChange={this.onTableChange}
+            pagination={{
+              current: page,
+              pageSize,
+              total,
+              showQuickJumper: false,
+              showSizeChanger: true,
+              showTotal: (atotal, range) =>
+                `当前显示：第${range[0]}-${range[1]}条, 总共${atotal}条`,
+              onShowSizeChange: (current, size) => this.paginationSizeChange(current, size),
+            }}
+          />
         </Card>
 
         <Modal
           visible={formState > 0}
+          destroyOnClose={true}
           title={formState === 1 ? '创建' : formState === 2 ? '编辑' : ''}
           onCancel={() => {
-            this.resetForm();
             this.setState({
               formState: 0,
             });
@@ -242,7 +348,8 @@ class Index extends PureComponent {
     );
   }
 }
+
 export default connect(({ shopList, loading }) => ({
   ...shopList,
   loading,
-}))(Index);
+}))(Form.create()(Index));
