@@ -269,7 +269,7 @@ class Index extends PureComponent {
             </FormItem>
           </Col>
           <Col span={4}>
-            <Button t {...formItemLayout} type="primary" onClick={this.queryShop}>
+            <Button type="primary" onClick={this.queryShop}>
               查询
             </Button>
             <Button
@@ -317,6 +317,7 @@ class Index extends PureComponent {
           <Table
             columns={this.columns}
             dataSource={data}
+            rowKey="_id"
             onChange={this.onTableChange}
             pagination={{
               current: page,

@@ -8,6 +8,7 @@ const { pwa } = defaultSettings; // preview.pro.ant.design only do not use in yo
 // preview.pro.ant.design 专用环境变量，请不要在你的项目中使用它。
 
 const { NODE_ENV, MOCK, LOCAL, TEST } = process.env;
+
 const plugins = [
   [
     'umi-plugin-react',
@@ -45,15 +46,6 @@ const plugins = [
         : {}),
     },
   ],
-  [
-    'umi-plugin-pro-block',
-    {
-      moveMock: false,
-      moveService: false,
-      modifyRequest: true,
-      autoAddMenu: true,
-    },
-  ],
 ];
 
 export default {
@@ -61,14 +53,10 @@ export default {
   targets: {
     ie: 11,
   },
-  // umi routes: https://umijs.org/zh/guide/router.html
   routes: pageRoutes,
-  // Theme for antd: https://ant.design/docs/react/customize-theme-cn
-  theme: {
-    // ...darkTheme,
-  },
+  theme: {},
   define: {
-    BASE_URL: '',
+    BASE_URL: NODE_ENV === 'production' ? 'http://georgette.top:3000' : 'http://localhost:3000',
     NEED_AUTH: NODE_ENV === 'production',
   },
   ignoreMomentLocale: true,

@@ -20,7 +20,7 @@ const codeMessage = {
   503: '服务不可用，服务器暂时过载或维护。',
   504: '网关超时。',
 };
-const { NODE_ENV } = process.env;
+
 const checkStatus = response => {
   if (response.status >= 200 && response.status < 300) {
     return response;
@@ -94,7 +94,7 @@ export default function request(url, option) {
       };
     }
   }
-  return fetch(`${0 ? 'http://localhost:3000' : 'http://georgette.top:3000'}${url}`, newOptions)
+  return fetch(`${BASE_URL}${url}`, newOptions)
     .then(checkStatus)
     .then(response => {
       if (response.status === 204) {

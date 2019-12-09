@@ -35,14 +35,7 @@ export default config => {
             const packageName = getModulePackageName(module) || '';
 
             if (packageName) {
-              return [
-                'bizcharts',
-                'gg-editor',
-                'g6',
-                '@antv',
-                'gg-editor-core',
-                'bizcharts-plugin-slider',
-              ].includes(packageName);
+              return ['bizcharts', 'bizcharts-plugin-slider'].includes(packageName);
             }
 
             return false;
