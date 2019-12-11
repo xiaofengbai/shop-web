@@ -56,7 +56,7 @@ export default {
   routes: pageRoutes,
   theme: {},
   define: {
-    BASE_URL: NODE_ENV === 'production' ? 'http://georgette.top:3000' : 'http://localhost:3000',
+    BASE_URL: NODE_ENV === 'production' ? 'http://47.105.138.95/api' : 'http://localhost:3000',
     NEED_AUTH: NODE_ENV === 'production',
   },
   ignoreMomentLocale: true,
