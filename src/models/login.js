@@ -10,20 +10,22 @@ const Model = {
   },
   effects: {
     *login({ payload }, { call, put }) {
-      const response = yield call(fakeAccountLogin, payload);
+      const response = yield call(fakeAccountLogin, {
+        email: payload.email,
+        password: payload.password,
+      });
       yield put({
         type: 'changeLoginStatus',
-        payload: response,
+        payload: { ...response, type: payload.type },
       }); // Login successfully
 
-      if (response.status === 'ok') {
+      if (response.success) {
         const urlParams = new URL(window.location.href);
         const params = getPageQuery();
         let { redirect } = params;
 
         if (redirect) {
           const redirectUrlParams = new URL(redirect);
-
           if (redirectUrlParams.origin === urlParams.origin) {
             redirect = redirect.substr(urlParams.origin.length);
 

@@ -14,16 +14,18 @@ const UserModel = {
     },
 
     *fetchCurrent(_, { call, put }) {
-      // const response = yield call(queryCurrent);
-      yield put({
-        type: 'saveCurrentUser',
-        payload: true,
-      });
+      const { success, data } = yield call(queryCurrent);
+      if (success) {
+        yield put({
+          type: 'saveCurrentUser',
+          payload: data,
+        });
+      }
     },
   },
   reducers: {
-    saveCurrentUser(state, action) {
-      return { ...state, currentUser: action.payload || {} };
+    saveCurrentUser(state, { payload }) {
+      return { ...state, currentUser: payload };
     },
 
     changeNotifyCount(
