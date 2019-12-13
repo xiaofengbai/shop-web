@@ -2,17 +2,17 @@ import { Icon } from 'antd';
 import React from 'react';
 import styles from './index.less';
 export default {
-  UserName: {
+  Email: {
     props: {
       size: 'large',
       id: 'userName',
       prefix: <Icon type="user" className={styles.prefixIcon} />,
-      placeholder: 'admin',
+      placeholder: 'email',
     },
     rules: [
       {
         required: true,
-        message: 'Please enter username!',
+        message: 'Please enter email!',
       },
     ],
   },
@@ -22,7 +22,7 @@ export default {
       prefix: <Icon type="lock" className={styles.prefixIcon} />,
       type: 'password',
       id: 'password',
-      placeholder: '888888',
+      placeholder: 'password',
     },
     rules: [
       {

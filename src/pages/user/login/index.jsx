@@ -1,11 +1,11 @@
 import { Alert, Checkbox, Icon } from 'antd';
-import { FormattedMessage, formatMessage } from 'umi-plugin-react/locale';
+import { formatMessage } from 'umi-plugin-react/locale';
 import React, { Component } from 'react';
 import Link from 'umi/link';
 import { connect } from 'dva';
 import LoginComponents from './components/Login';
 import styles from './style.less';
-const { Tab, UserName, Password, Mobile, Captcha, Submit } = LoginComponents;
+const { Tab, Email, Password, Submit, Mobile, Captcha } = LoginComponents;
 
 @connect(({ login, loading }) => ({
   userLogin: login,
@@ -87,28 +87,17 @@ class Login extends Component {
             this.loginForm = form;
           }}
         >
-          <Tab
-            key="account"
-            tab={formatMessage({
-              id: 'user-login.login.tab-login-credentials',
-            })}
-          >
+          <Tab key="account" tab={'账户密码登陆'}>
             {status === 'error' &&
               loginType === 'account' &&
               !submitting &&
-              this.renderMessage(
-                formatMessage({
-                  id: 'user-login.login.message-invalid-credentials',
-                }),
-              )}
-            <UserName
+              this.renderMessage('验证码错误')}
+            <Email
               name="email"
               rules={[
                 {
                   required: true,
-                  message: formatMessage({
-                    id: 'user-login.email.required',
-                  }),
+                  message: '请输入邮箱地址',
                 },
               ]}
             />
@@ -117,9 +106,7 @@ class Login extends Component {
               rules={[
                 {
                   required: true,
-                  message: formatMessage({
-                    id: 'user-login.password.required',
-                  }),
+                  message: '请输入密码',
                 },
               ]}
               onPressEnter={e => {
@@ -131,12 +118,7 @@ class Login extends Component {
               }}
             />
           </Tab>
-          {/* <Tab
-            key="mobile"
-            tab={formatMessage({
-              id: 'user-login.login.tab-login-mobile',
-            })}
-          >
+          <Tab key="mobile" tab={'手机登陆'}>
             {status === 'error' &&
               loginType === 'mobile' &&
               !submitting &&
@@ -147,29 +129,21 @@ class Login extends Component {
               )}
             <Mobile
               name="mobile"
-              placeholder={formatMessage({
-                id: 'user-login.phone-number.placeholder',
-              })}
+              placeholder={''}
               rules={[
                 {
                   required: true,
-                  message: formatMessage({
-                    id: 'user-login.phone-number.required',
-                  }),
+                  message: '输入手机号',
                 },
                 {
                   pattern: /^1\d{10}$/,
-                  message: formatMessage({
-                    id: 'user-login.phone-number.wrong-format',
-                  }),
+                  message: '格式错误',
                 },
               ]}
             />
             <Captcha
               name="captcha"
-              placeholder={formatMessage({
-                id: 'user-login.verification-code.placeholder',
-              })}
+              placeholder={'验证码'}
               countDown={120}
               onGetCaptcha={this.onGetCaptcha}
               getCaptchaButtonText={formatMessage({
@@ -187,10 +161,10 @@ class Login extends Component {
                 },
               ]}
             />
-          </Tab> */}
+          </Tab>
           <div>
             <Checkbox checked={autoLogin} onChange={this.changeAutoLogin}>
-              <FormattedMessage id="user-login.login.remember-me" />
+              记住我
             </Checkbox>
             <a
               style={{
@@ -198,21 +172,10 @@ class Login extends Component {
               }}
               href=""
             >
-              <FormattedMessage id="user-login.login.forgot-password" />
+              忘记密码
             </a>
           </div>
-          <Submit loading={submitting}>
-            <FormattedMessage id="user-login.login.login" />
-          </Submit>
-          {/* <div className={styles.other}>
-            <FormattedMessage id="user-login.login.sign-in-with" />
-            <Icon type="alipay-circle" className={styles.icon} theme="outlined" />
-            <Icon type="taobao-circle" className={styles.icon} theme="outlined" />
-            <Icon type="weibo-circle" className={styles.icon} theme="outlined" />
-            <Link className={styles.register} to="/user/register">
-              <FormattedMessage id="user-login.login.signup" />
-            </Link>
-          </div> */}
+          <Submit loading={submitting}>登陆</Submit>
         </LoginComponents>
       </div>
     );
