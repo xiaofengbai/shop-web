@@ -1,23 +1,23 @@
 import { routerRedux } from 'dva/router';
 import { stringify } from 'querystring';
-import { fakeAccountLogin, getFakeCaptcha } from '@/services/login';
+import { fakeAccountLogin, getFakeCaptcha, registe } from '@/services/login';
 import { setAuthority } from '@/utils/authority';
 import { getPageQuery } from '@/utils/utils';
 const Model = {
   namespace: 'login',
   state: {
-    status: undefined,
+    isLogin: false,
   },
   effects: {
-    *login({ payload }, { call, put }) {
+    *login({ payload, callBack }, { call, put }) {
       const response = yield call(fakeAccountLogin, {
         email: payload.email,
         password: payload.password,
       });
       yield put({
         type: 'changeLoginStatus',
-        payload: { ...response, type: payload.type },
-      }); // Login successfully
+        payload: { ...response },
+      });
 
       if (response.success) {
         const urlParams = new URL(window.location.href);
@@ -39,7 +39,24 @@ const Model = {
         }
 
         yield put(routerRedux.replace(redirect || '/'));
+      } else if (callBack) {
+        callBack(response.success, response.msg);
       }
+    },
+
+    *registe({ payload, callBack }, { call, put }) {
+      const { success, msg } = yield call(registe, {
+        email: payload.email,
+        password: payload.password,
+        captcha: payload.captcha,
+      });
+      if (success) {
+        yield put({
+          type: 'setRegiste',
+          payload: { registeStatus: true },
+        });
+      }
+      if (callBack) callBack(success, msg);
     },
 
     *getCaptcha({ payload }, { call }) {
@@ -63,8 +80,12 @@ const Model = {
   },
   reducers: {
     changeLoginStatus(state, { payload }) {
-      setAuthority(payload.currentAuthority);
-      return { ...state, status: payload.status, type: payload.type };
+      // setAuthority(payload.role);
+      return { ...state, isLogin: true };
+    },
+    setRegiste(state, { registeStatus }) {
+      // setAuthority(payload.role);
+      return { ...state, registeStatus };
     },
   },
 };

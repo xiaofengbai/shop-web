@@ -5,6 +5,12 @@ export async function fakeAccountLogin(params) {
     body: params,
   });
 }
-export async function getFakeCaptcha(mobile) {
-  return request(`/login/captcha?mobile=${mobile}`);
+export async function registe(params) {
+  return request('/registe', {
+    method: 'POST',
+    body: params,
+  });
+}
+export async function getFakeCaptcha(email) {
+  return request(`/captcha?email=${email}`);
 }

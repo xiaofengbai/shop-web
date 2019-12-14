@@ -1,4 +1,4 @@
-import { Alert, Checkbox, Icon } from 'antd';
+import { Alert, Checkbox, Icon, message, notification } from 'antd';
 import { formatMessage } from 'umi-plugin-react/locale';
 import React, { Component } from 'react';
 import Link from 'umi/link';
@@ -14,7 +14,7 @@ const { Tab, Email, Password, Submit, Mobile, Captcha } = LoginComponents;
 class Login extends Component {
   loginForm = undefined;
   state = {
-    type: 'account',
+    type: 'login',
     autoLogin: true,
   };
   changeAutoLogin = e => {
@@ -24,13 +24,43 @@ class Login extends Component {
   };
   handleSubmit = (err, values) => {
     const { type } = this.state;
-
     if (!err) {
       const { dispatch } = this.props;
-      dispatch({
-        type: 'login/login',
-        payload: { ...values, type },
-      });
+      if (type == 'login') {
+        dispatch({
+          type: 'login/login',
+          payload: { ...values, type },
+          callBack: (status, msg) => {
+            if (!status) {
+              notification.error({
+                message: '登陆失败',
+                description: msg,
+                duration: 5,
+              });
+            }
+          },
+        });
+      } else if (type == 'registe') {
+        dispatch({
+          type: 'login/registe',
+          payload: { ...values, type },
+          callBack: (status, msg) => {
+            if (status) {
+              this.loginForm.resetFields();
+              notification.success({
+                message: '注册成功',
+                duration: 5,
+              });
+            } else {
+              notification.error({
+                message: '注册失败',
+                description: msg,
+                duration: 5,
+              });
+            }
+          },
+        });
+      }
     }
   };
   onTabChange = type => {
@@ -44,7 +74,7 @@ class Login extends Component {
         return;
       }
 
-      this.loginForm.validateFields(['mobile'], {}, async (err, values) => {
+      this.loginForm.validateFields(['email'], {}, async (err, values) => {
         if (err) {
           reject(err);
         } else {
@@ -53,7 +83,7 @@ class Login extends Component {
           try {
             const success = await dispatch({
               type: 'login/getCaptcha',
-              payload: values.mobile,
+              payload: values.email,
             });
             resolve(!!success);
           } catch (error) {
@@ -62,16 +92,6 @@ class Login extends Component {
         }
       });
     });
-  renderMessage = content => (
-    <Alert
-      style={{
-        marginBottom: 24,
-      }}
-      message={content}
-      type="error"
-      showIcon
-    />
-  );
 
   render() {
     const { userLogin, submitting } = this.props;
@@ -87,17 +107,17 @@ class Login extends Component {
             this.loginForm = form;
           }}
         >
-          <Tab key="account" tab={'账户密码登陆'}>
-            {status === 'error' &&
-              loginType === 'account' &&
-              !submitting &&
-              this.renderMessage('验证码错误')}
+          <Tab key="login" tab={'登陆'}>
             <Email
               name="email"
               rules={[
                 {
                   required: true,
                   message: '请输入邮箱地址',
+                },
+                {
+                  pattern: /[\w]+(\.[\w]+)*@[\w]+(\.[\w])+/,
+                  message: '邮箱格式错误',
                 },
               ]}
             />
@@ -118,7 +138,52 @@ class Login extends Component {
               }}
             />
           </Tab>
-          <Tab key="mobile" tab={'手机登陆'}>
+          <Tab key="registe" tab={'注册'}>
+            <Email
+              name="email"
+              rules={[
+                {
+                  required: true,
+                  message: '请输入邮箱地址',
+                },
+                {
+                  pattern: /[\w]+(\.[\w]+)*@[\w]+(\.[\w])+/,
+                  message: '邮箱格式错误',
+                },
+              ]}
+            />
+            <Captcha
+              name="captcha"
+              placeholder={'验证码'}
+              countDown={120}
+              onGetCaptcha={this.onGetCaptcha}
+              getCaptchaButtonText={'获取验证码'}
+              getCaptchaSecondText={'秒'}
+              rules={[
+                {
+                  required: true,
+                  message: '输入验证码',
+                },
+              ]}
+            />
+            <Password
+              name="password"
+              rules={[
+                {
+                  required: true,
+                  message: '请输入密码',
+                },
+              ]}
+              onPressEnter={e => {
+                e.preventDefault();
+
+                if (this.loginForm) {
+                  this.loginForm.validateFields(this.handleSubmit);
+                }
+              }}
+            />
+          </Tab>
+          {/* <Tab key="mobile" tab={'手机登陆'}>
             {status === 'error' &&
               loginType === 'mobile' &&
               !submitting &&
@@ -161,7 +226,7 @@ class Login extends Component {
                 },
               ]}
             />
-          </Tab>
+          </Tab> */}
           <div>
             <Checkbox checked={autoLogin} onChange={this.changeAutoLogin}>
               记住我
@@ -175,7 +240,7 @@ class Login extends Component {
               忘记密码
             </a>
           </div>
-          <Submit loading={submitting}>登陆</Submit>
+          <Submit loading={submitting}>{type === 'login' ? '登陆' : '注册'}</Submit>
         </LoginComponents>
       </div>
     );
